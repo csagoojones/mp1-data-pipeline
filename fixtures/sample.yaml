@@ -1,0 +1,7 @@
+people:
+  - name: Alice
+    age: 30
+    city: Boston
+  - name: Bob
+    age: 25
+    city: Chicago
