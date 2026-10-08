@@ -1,4 +1,3 @@
-cat > data_loaders.py << 'EOF'
 # data_loaders.py
 from pathlib import Path
 import logging
@@ -60,4 +59,3 @@ def load_data(filepath):
     else:
         logger.error(f"Unsupported file format: {extension}")
         raise ValueError(f"Unsupported file format: {extension}")
-EOF
