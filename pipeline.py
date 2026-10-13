@@ -7,6 +7,9 @@ Usage:
     python pipeline.py --input fixtures/sample_data.csv --output output/clean.csv --config config/config.yaml --verbose
 """
 
+# decides the order of the steps and passes results from one step to the next
+#  the modules in src/ do the actual work such as loading, validating, cleaning, saving
+
 import argparse
 import logging
 import sys
@@ -24,6 +27,8 @@ from src import (
     validate_input,
 )
 
+# When this file is run as a script, __name__ is "__main__", which is why
+# log messages from this file are labeled __main__
 logger = logging.getLogger(__name__)
 
 
@@ -32,6 +37,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="Command-line data processing pipeline."
     )
+    # required=True means argparse stops with a usage message if one is missing
     parser.add_argument(
         "--input", "-i",
         required=True,
@@ -47,6 +53,7 @@ def parse_arguments():
         required=True,
         help="Path to the output file",
     )
+    # store_true makes this a flag with no value: args.verbose is True if --verbose is given, and False otherwise
     parser.add_argument(
         "--verbose", "-v",
         action="store_true",
@@ -57,6 +64,9 @@ def parse_arguments():
 
 def main():
     """Main pipeline function."""
+
+    # read the command line and set up logging.
+    # --verbose switches the logging level from INFO to DEBUG.
     args = parse_arguments()
     setup_logging(args.verbose)
 
@@ -65,12 +75,16 @@ def main():
         f"config={args.config}, output={args.output}"
     )
 
+    # check both files exist before loading anything, a bad path gives a clear error message and exit code 1 instead of a crash.
+    # Exit code 0 means success and anything else means failure.
+
     # Validate both files before loading anything
     if not validate_input(args.input):
         sys.exit(1)
     if not validate_input(args.config):
         sys.exit(1)
 
+    # The loaders raise ValueError for an unsupported format, which we catch here and turn into an exit.
     # Load the input data and the configuration
     try:
         data = load_data(args.input)
@@ -98,6 +112,8 @@ def main():
     # Keep a copy of the validated data so we can compare before and after
     df_before = data.copy()
 
+    # clean. process_data() reads the "processing" section of the
+    # config and runs only the steps that are turned on.
     try:
         df_after = process_data(data, config)
     except ValueError:
@@ -109,9 +125,12 @@ def main():
     save_data(df_after, args.output)
     logger.info(f"Saved cleaned data to {args.output}")
 
+    # print the report last and do not sort alphabetically
     print("Cleaning report:")
     pprint(report, sort_dicts=False)
 
 
+# This runs main() only when the file is run directly
+# (python pipeline.py), not when another file imports it
 if __name__ == "__main__":
     main()

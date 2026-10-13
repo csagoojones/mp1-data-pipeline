@@ -1,4 +1,6 @@
 # src/data_validator.py
+
+# validates that the data is in the condition that the rest of the code or pipeline is expecting
 import logging
 import pandas as pd
 
@@ -12,15 +14,17 @@ def validate_dataframe(df, required_columns, numeric_columns):
     numeric_columns: a list of column names whose values should be numeric.
     """
     rows_before = len(df)
+
+    # line allows us to work on a copy so the original dataframe is not messed with
     df = df.copy()
 
-    # Every required column must exist
+    # verifies that every required column exists
     for col in required_columns:
         if col not in df.columns:
             logger.error(f"Required column missing: {col}")
             raise ValueError(f"Required column missing: {col}")
 
-    # Numeric columns: drop rows whose non-missing values are not numbers
+    # drop rows in numeric columns whose non-missing values are not numbers
     for col in numeric_columns:
         if col not in df.columns:
             logger.warning(f"Numeric column not found: {col}")

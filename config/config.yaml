@@ -1,13 +1,21 @@
+# Validation runs before any cleaning can happen
+
 validation:
+# Every column listed must exist in the csv
+
   required_columns:
     - record_id
     - name
     - rating
     - category
     - status
+# for columns that should contain numbers. anything with text will be removed
   numeric_columns:
     - rating
 
+
+# Settings for cleaning
+# duplicates, missing values, then outliers
 processing:
   remove_duplicates: true
   missing:

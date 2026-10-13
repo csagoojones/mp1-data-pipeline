@@ -1,4 +1,7 @@
 # data_processor.py
+
+## The cleaning steps are remove duplicates, handle missing values, remove outliers.
+
 import logging
 import pandas as pd
 
@@ -7,7 +10,9 @@ logger = logging.getLogger(__name__)
 
 def remove_duplicates(df):
     """Remove duplicate rows."""
+    # save the row count first
     rows_before = len(df)
+    # drop duplicates and keep the first copy
     df = df.drop_duplicates()
     rows_after = len(df)
     logger.debug(
@@ -55,6 +60,7 @@ def remove_outliers(df, columns, method, threshold):
             logger.warning(f"Column not numeric: {col}")
             continue
 
+        # interquartile range
         if method == "iqr":
             q1 = df[col].quantile(0.25)
             q3 = df[col].quantile(0.75)
@@ -67,8 +73,7 @@ def remove_outliers(df, columns, method, threshold):
             lower = mean - threshold * std
             upper = mean + threshold * std
 
-        # Keep values inside the bounds. Missing values are not outliers,
-        # so they are kept here (handle_missing deals with them).
+        # Keep values inside the bounds. Missing values are not outliers,so they are kept here (handle_missing deals with them).
         keep = df[col].between(lower, upper) | df[col].isna()
         removed = int((~keep).sum())
         df = df[keep]
@@ -84,16 +89,16 @@ def process_data(df, config):
     """Apply the processing steps enabled in the configuration."""
     processing = config.get("processing", {})
 
-    # 1. Remove duplicates
+    # Remove duplicates
     if processing.get("remove_duplicates", False):
         df = remove_duplicates(df)
 
-    # 2. Handle missing values
+    # take care of missing values
     missing = processing.get("missing", {})
     if missing.get("enabled", False):
         df = handle_missing(df, axis=missing.get("axis", "rows"))
 
-    # 3. Remove outliers
+    # remove the outliers
     outliers = processing.get("outliers", {})
     if outliers.get("enabled", False):
         df = remove_outliers(
